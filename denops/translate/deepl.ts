@@ -30,7 +30,14 @@ export async function translate(opt: Option): Promise<string[]> {
   if (resp.status != 200) {
     throw new Error(`status: ${resp.status}, text: ${resp.statusText}`);
   }
-  return ((await resp.json()) as DeepLResponse).translations[0].text.split(
-    "\r\n"
-  );
+
+  // FIXME: dirty hack - modify the response text to readable japanese format.
+  const ret = ((await resp.json()) as DeepLResponse)
+    .translations[0].text
+    .replace(
+      /\([^()]*\)|。/gu,
+      m => (m === '。' ? '。\r\n' : m)
+    )
+    .replace(/\r?\n$/, "");
+  return ret.split("\r\n");
 }
